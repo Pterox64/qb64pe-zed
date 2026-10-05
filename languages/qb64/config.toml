@@ -1,0 +1,23 @@
+name = "QB64-PE"
+grammar = "qb64"
+path_suffixes = ["bas", "bi", "bm"]
+line_comments = ["' ", "REM "]
+tab_size = 4
+hard_tabs = false
+debuggers = ["QB64PE"]
+
+# Type sigils and `_`-prefixed names are part of QB64-PE identifiers, so treat
+# them as word characters for double-click selection and word motions.
+word_characters = ["$", "%", "&", "!", "#", "~", "@", "`"]
+
+# `.` and `$` open completion (TYPE members, metacommands).
+completion_query_characters = [".", "$"]
+
+# Block-aware auto-indentation. These regexes are matched per line; a matching
+# "increase" line indents the following line by one level, a matching
+# "decrease" line outdents itself. Mid-block keywords (ELSE, ELSEIF, CASE)
+# appear in both lists so they align with their opener and indent their body.
+# The QB64-PE IDE's "Indent SUBs and FUNCTIONs" behaviour is included.
+increase_indent_pattern = "(?i)^\\s*(?:if\\b.*then\\s*(?:'.*)?$|for\\b.*|do\\b.*|while\\b.*|select\\b.*|case\\b.*|type\\b.*|sub\\b.*|function\\b.*|declare\\s+(?:dynamic\\s+)?library\\b.*|else\\b.*|elseif\\b.*|\\$if\\b.*|\\$else\\b.*|\\$elseif\\b.*)"
+
+decrease_indent_pattern = "(?i)^\\s*(?:end\\s+(?:if|sub|function|type|select|declare)\\b.*|endif\\b.*|endsub\\b.*|endfunction\\b.*|endtype\\b.*|endselect\\b.*|loop\\b.*|wend\\b.*|next\\b.*|case\\b.*|else\\b.*|elseif\\b.*|\\$end\\s*if\\b.*|\\$else\\b.*|\\$elseif\\b.*)"

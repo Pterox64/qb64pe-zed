@@ -1,0 +1,21 @@
+{{DISPLAYTITLE:PRINT}}
+{{QBDLDATE:2024-01-01}}
+{{QBDLTIME:00:00:00}}
+The '''PRINT''' statement writes text to the screen.
+
+{{PageSyntax}}
+{{CodeStart}}
+PRINT [{{Parameter|expression}}]
+{{CodeEnd}}
+
+{{PageDescription}}
+* {{Parameter|expression}} is any string or numeric expression.
+* A trailing {{InlineCode}};{{InlineCodeEnd}} suppresses the newline.
+
+{{PageExamples}}
+{{CodeStart}}
+PRINT "Hello"
+{{CodeEnd}}
+
+{{PageSeeAlso}}
+* {{Cl|PRINT USING}}

@@ -1,0 +1,138 @@
+{
+  "PRINT": {
+    "prefix": "print",
+    "body": ["PRINT $0"],
+    "description": "PRINT statement"
+  },
+  "IF...THEN...END IF": {
+    "prefix": "ifthen",
+    "body": ["IF ${1:condition} THEN", "\t$0", "END IF"],
+    "description": "Block IF...THEN"
+  },
+  "IF...ELSE...END IF": {
+    "prefix": "ifelse",
+    "body": ["IF ${1:condition} THEN", "\t$0", "ELSE", "\t", "END IF"],
+    "description": "Block IF...ELSE"
+  },
+  "FOR...NEXT": {
+    "prefix": "for",
+    "body": [
+      "DIM ${1:i} AS INTEGER",
+      "FOR ${1:i}% = ${2:first} TO ${3:last}",
+      "\t$0",
+      "NEXT ${1:i}%"
+    ],
+    "description": "FOR...NEXT loop"
+  },
+  "FOR I...NEXT I": {
+    "prefix": "fori",
+    "body": [
+      "DIM i AS INTEGER",
+      "FOR i% = ${1:first} TO ${2:last}",
+      "\t$0",
+      "NEXT i%"
+    ],
+    "description": "FOR I...NEXT I loop"
+  },
+  "FOR J...NEXT J": {
+    "prefix": "forj",
+    "body": [
+      "DIM j AS INTEGER",
+      "FOR j% = ${1:first} TO ${2:last}",
+      "\t$0",
+      "NEXT j%"
+    ],
+    "description": "FOR J...NEXT J loop"
+  },
+  "DO...LOOP": {
+    "prefix": "doloop",
+    "body": ["DO", "\t$0", "LOOP"],
+    "description": "DO...LOOP"
+  },
+  "DO WHILE...LOOP": {
+    "prefix": "dowhile",
+    "body": ["DO WHILE ${1:condition}", "\t$0", "LOOP"],
+    "description": "DO WHILE...LOOP"
+  },
+  "DO UNTIL...LOOP": {
+    "prefix": "dountil",
+    "body": ["DO UNTIL ${1:condition}", "\t$0", "LOOP"],
+    "description": "DO UNTIL...LOOP"
+  },
+  "DO...LOOP WHILE": {
+    "prefix": "doloopwhile",
+    "body": ["DO", "\t$0", "LOOP WHILE ${1:condition}"],
+    "description": "DO...LOOP WHILE"
+  },
+  "DO...LOOP UNTIL": {
+    "prefix": "doloopuntil",
+    "body": ["DO", "\t$0", "LOOP UNTIL ${1:condition}"],
+    "description": "DO...LOOP UNTIL"
+  },
+  "WHILE...WEND": {
+    "prefix": "while",
+    "body": ["WHILE ${1:condition}", "\t$0", "WEND"],
+    "description": "WHILE...WEND"
+  },
+  "SELECT CASE...END SELECT": {
+    "prefix": "select",
+    "body": [
+      "SELECT CASE ${1:expression}",
+      "\tCASE ${2:value}",
+      "\t\t$0",
+      "\tCASE ELSE",
+      "\t\t",
+      "END SELECT"
+    ],
+    "description": "SELECT CASE...END SELECT"
+  },
+  "SUB...END SUB": {
+    "prefix": "sub",
+    "body": ["SUB ${1:name} (${2:parameters})", "\t$0", "END SUB"],
+    "description": "SUB...END SUB"
+  },
+  "FUNCTION...END FUNCTION": {
+    "prefix": "func",
+    "body": [
+      "FUNCTION ${1:name}${2:type_sigil} (${3:parameters})",
+      "\t$0",
+      "END FUNCTION"
+    ],
+    "description": "FUNCTION...END FUNCTION"
+  },
+  "TYPE...END TYPE": {
+    "prefix": "type",
+    "body": ["TYPE ${1:name}", "\t$0", "END TYPE"],
+    "description": "TYPE...END TYPE"
+  },
+  "DECLARE LIBRARY...END DECLARE": {
+    "prefix": "declarelibrary",
+    "body": ["DECLARE LIBRARY \"${1:library}\"", "\t$0", "END DECLARE"],
+    "description": "DECLARE LIBRARY...END DECLARE"
+  },
+  "DIM...AS": {
+    "prefix": "dim",
+    "body": ["DIM ${1:name} AS ${2:INTEGER}"],
+    "description": "DIM declaration"
+  },
+  "CONST": {
+    "prefix": "const",
+    "body": ["CONST ${1:name} = ${2:value}"],
+    "description": "CONST declaration"
+  },
+  "$CONSOLE": {
+    "prefix": "$console",
+    "body": ["\\$CONSOLE"],
+    "description": "$CONSOLE metacommand"
+  },
+  "$INCLUDE": {
+    "prefix": "$include",
+    "body": ["'\\$INCLUDE:'${1:file.bi}'"],
+    "description": "$INCLUDE metacommand"
+  },
+  "$IF...$ELSE...$END IF": {
+    "prefix": "$ifelse",
+    "body": ["\\$IF ${1:condition} THEN", "\t$0", "\\$ELSE", "\t", "\\$END IF"],
+    "description": "$IF conditional compilation"
+  }
+}

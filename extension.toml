@@ -1,0 +1,22 @@
+id = "qb64"
+name = "QB64-PE"
+version = "0.3.0"
+schema_version = 1
+authors = ["Local"]
+description = "QB64-PE (Phoenix Edition) language support for Zed: syntax highlighting, auto-indentation, snippets, build tasks, an external formatter and a language server."
+repository = "https://github.com/qb64pe/qb64pe"
+
+snippets = ["./snippets/qb64-pe.json"]
+
+[grammars.qb64]
+repository = "file:///home/yegor/git/yegor/qb64pe/qb64-zed/grammars/qb64"
+rev = "main"
+
+[language_servers.qb64pe]
+name = "QB64-PE Language Server"
+languages = ["QB64-PE"]
+
+[language_servers.qb64pe.language_ids]
+"QB64-PE" = "qb64pe"
+
+[debug_adapters.QB64PE]

@@ -1,0 +1,14 @@
+[
+  {
+    "label": "QB64-PE: Build",
+    "command": "qb64pe",
+    "args": ["$ZED_FILE"],
+    "tags": ["qb64pe-build"]
+  },
+  {
+    "label": "QB64-PE: Build and Run",
+    "command": "qb64pe",
+    "args": ["-x", "$ZED_FILE"],
+    "tags": ["qb64pe-build-run"]
+  }
+]

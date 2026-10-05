@@ -1,0 +1,253 @@
+# Сборка и установка
+
+> Обзор расширения и его возможностей — в [`README.ru.md`](../README.ru.md).
+
+Инструкция по сборке расширения и запуску всех его частей в Zed. В этом
+репозитории есть четыре независимые части:
+
+| Часть | Чем является | Чем запускается |
+| --- | --- | --- |
+| Грамматика | Tree-sitter-парсер (`grammars/qb64/`) | Zed компилирует в wasm сам (wasi-sdk) |
+| Расширение (Rust) | wasm-компонент (`src/lib.rs`) | Zed компилирует в `wasm32-wasip2` |
+| Языковой сервер (LSP) | Node-процесс (`server/src/server.ts`) | запускает Rust-расширение |
+| Отладчик (DAP) | Node-процесс (`server/src/dap/dapServer.ts`) | запускает Rust-расширение |
+
+Rust-часть — только «пускач»: она сообщает Zed, чем запускать LSP и DAP. Сами
+серверы — это обычные host-процессы (их нельзя собрать в wasm).
+
+---
+
+## 1. Требования
+
+- **Zed** — версия, поддерживающая Dev Extensions и DAP
+  (`zed: install dev extension`).
+- **Rust** с целью `wasm32-wasip2`:
+
+  ```sh
+  rustup target add wasm32-wasip2
+  ```
+
+  > Zed использует именно `wasm32-wasip2`. Если Rust поставлен не через
+  > `rustup` (например, из дистрибутива/Nix), цель нужно добавить вручную.
+- **wasi-sdk** — для сборки грамматики. Zed скачивает его сам; чтобы указать
+  существующую установку, задайте `WASI_SDK_PATH` на её корень (тот, где лежит
+  `bin/clang`).
+- **Node 24+** (или ≥ 22.18) — серверы выполняют свои TypeScript-исходники
+  напрямую через type-stripping, поэтому более старый Node не подойдёт.
+  Проверить: `node --version`.
+- **QB64PE** — для отладчика, задач сборки и hover-справки. Путь к компилятору
+  (`.../qb64pe`) задаётся в конфигурации отладки или переменной окружения.
+
+---
+
+## 2. Настройка перед установкой
+
+### 2.1. Путь к грамматике
+
+`extension.toml` ссылается на грамматику как на локальный git-репозиторий:
+
+```toml
+[grammars.qb64]
+repository = "file:///home/yegor/git/yegor/qb64pe/qb64-zed/grammars/qb64"
+rev = "main"
+```
+
+**Обязательно поправьте `repository`** на абсолютный путь к `grammars/qb64` на
+вашей машине (именно этот путь, а не на корень расширения). `rev` может быть
+веткой (`main` — удобно при локальной правке грамматики) или коммитом
+(надёжнее для воспроизводимости).
+
+### 2.2. Коммит грамматики
+
+Zed собирает парсер из зафиксированной ревизии, поэтому изменения грамматики
+нужно закоммитить в её репозитории:
+
+```sh
+cd grammars/qb64
+git add -A && git commit -m "Update grammar"
+```
+
+Незакоммиченные правки `grammar.js`/`src/parser.c` Zed не увидит.
+
+### 2.3. Метаданные расширения
+
+В `extension.toml` поля `authors`, `repository` и `version` — заглушки; при
+публикации их нужно заменить.
+
+### 2.4. Проверка окружения сборки
+
+```sh
+cd server && npm run smoke      # серверы: Node 24+, без зависимостей
+cd .. && node --version         # должно быть >= 24
+```
+
+---
+
+## 3. Установка Dev Extension
+
+1. Откройте палитру команд Zed и выполните **`zed: install dev extension`**.
+2. Выберите **корень расширения** — каталог с `extension.toml`
+   (не `grammars/qb64`).
+3. Zed сам соберёт Rust в wasm (`wasm32-wasip2`) и компилирует грамматику через
+   wasi-sdk. Откройте `.bas` — должна появиться подсветка.
+
+Zed документирует это здесь:
+<https://zed.dev/docs/extensions/developing-extensions>
+
+### Диагностика
+
+- Логи: **`zed: open log`**. Подробнее — запустить Zed из терминала:
+  `zed --foreground`.
+- Если грамматика не подхватилась — почти всегда неверный `repository` в
+  `extension.toml` или незакоммиченная ревизия в `grammars/qb64`.
+- Можно проверить Rust отдельно (без Zed):
+
+  ```sh
+  cargo check --target wasm32-wasip2
+  ```
+
+---
+
+## 4. Настройка Zed
+
+### 4.1. Пути к серверам
+
+Rust-пускач находит серверы так:
+
+1. бинарь `qb64pe-lsp` / `qb64pe-dap` в `$PATH` (self-contained вариант);
+2. иначе — Node (сначала `QB64PE_NODE`, потом встроенный в Zed, потом `node` из
+   `$PATH`) и скрипт из переменной окружения.
+
+Для запуска из исходников задайте в окружении, из которого стартует Zed:
+
+```sh
+export QB64PE_LSP_SERVER=/абсолютный/путь/qb64-zed/server/src/server.ts
+export QB64PE_DAP_SERVER=/абсолютный/путь/qb64-zed/server/src/dap/dapServer.ts
+# если встроенный Node в Zed старее 24:
+export QB64PE_NODE=/путь/к/node
+# компилятор QB64PE (для отладчика):
+export QB64PE_COMPILER=/путь/к/QB64pe/qb64pe
+```
+
+### 4.2. Путь к справке (hover)
+
+Hover по встроенным именам конвертирует вики-справку из установленного QB64PE.
+Источники (по приоритету): `initialization_options`, затем переменные окружения:
+
+```sh
+export QB64PE_HELP_PATH=/путь/к/QB64pe/internal/help
+# либо, чтобы вывести <install>/internal/help:
+export QB64PE_INSTALL_PATH=/путь/к/QB64pe
+```
+
+### 4.3. `settings.json`
+
+```jsonc
+{
+  "lsp": {
+    "qb64pe": {
+      "initialization_options": {
+        "helpPath": "/путь/к/QB64pe/internal/help"
+      }
+    }
+  },
+  "languages": {
+    "QB64-PE": {
+      // Семантические токены для пользовательских имён поверх tree-sitter.
+      "semantic_tokens": "combined",
+      // Внешний форматтер (см. scripts/qb64pe-fmt.mjs).
+      "formatter": {
+        "external": {
+          "command": "node",
+          "arguments": ["/абсолютный/путь/qb64-zed/scripts/qb64pe-fmt.mjs"]
+        }
+      }
+    }
+  }
+}
+```
+
+### 4.4. Запуск отладчика
+
+Добавьте сценарий в `.zed/debug.json` (палитра: **`zed: open debug`**):
+
+```jsonc
+[
+  {
+    "label": "Debug current file",
+    "adapter": "QB64PE",
+    "request": "launch",
+    "program": "$ZED_FILE",
+    "compilerPath": "/путь/к/QB64pe/qb64pe"
+  }
+]
+```
+
+Схема всех параметров —
+[`debug_adapter_schemas/QB64PE.json`](../debug_adapter_schemas/QB64PE.json):
+`program`, `compilerPath`, `port`, `stopOnEntry`, `autoAddDebug`, `timeoutMs`.
+`compilerPath` можно не указывать, если задан `QB64PE_COMPILER`.
+
+---
+
+## 5. Проверка
+
+```sh
+# Rust-расширение компилируется (host-проверка API):
+cargo check
+
+# Языковой сервер: юнит- и интеграционные тесты (JSON-RPC, 80 проверок):
+cd server && npm run smoke
+
+# Отладчик: юнит-тесты кодека + живая сессия с реальным компилятором (30 проверок):
+QB64PE_COMPILER=/путь/к/QB64pe/qb64pe npm run dap:smoke
+```
+
+Живой DAP-тест компилирует и запускает программу, поэтому без переменной
+`QB64PE_COMPILER` он пропускается (кодек при этом всё равно проверяется).
+
+### Известное ограничение отладчика
+
+Путь **останова** (breakpoint / `stopOnEntry`) требует графического окружения:
+`vwatch` вызывает `set_foreground_window`, и в headless-сессии остановка может
+зависнуть. Путь запуска, `run`, call stack и `quit` при этом работают. Проверку
+останова и живых значений переменных стоит делать в обычной графической сессии.
+
+---
+
+## 6. Правка грамматики
+
+Источник истины — `grammars/qb64/grammar.js`. После правки:
+
+```sh
+cd grammars/qb64
+tree-sitter generate        # обновляет src/parser.c и src/node-types.json
+git add -A && git commit -m "..."
+```
+
+Сгенерированный `src/grammar.json` не должен попадать в коммит (он в
+`.gitignore`).
+
+---
+
+## 7. NixOS
+
+Если `qb64pe` и Node 24 доступны в shell, из которого запускается Zed,
+серверы и задачи сборки находят их через `$PATH`. Если Rust ставится из Nix,
+цель `wasm32-wasip2` нужно добавить в тулчейн (rust-overlay / fenix) или
+использовать `rustup`.
+
+---
+
+## 8. Что не проверено в этом окружении
+
+Расширение собиралось и тестировалось без возможности запустить полную
+wasm-сборку Zed: в окружении автора отсутствовала стандартная библиотека Rust
+для `wasm32-wasip2`. Поэтому:
+
+- Rust проверен через `cargo check` (host) против `zed_extension_api` 0.7.0;
+- поведение LSP и DAP проверено сквозными тестами против реального QB64PE 4.7.0;
+- сборка wasm и установка как Dev Extension в этом окружении **не** выполнялись.
+
+Шаги 1–3 выше — это и есть недостающая проверка; выполните их на машине с
+установленной целью `wasm32-wasip2`.

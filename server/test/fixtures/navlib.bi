@@ -1,0 +1,7 @@
+CONST NAV_VERSION = 1
+SUB Navigator (x AS INTEGER)
+    PRINT x
+END SUB
+FUNCTION NavAdd% (a AS INTEGER, b AS INTEGER)
+    NavAdd% = a + b
+END FUNCTION

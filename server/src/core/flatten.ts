@@ -1,0 +1,140 @@
+/**
+ * Flatten a QB64PE program's `$INCLUDE` graph into a single source, with a line
+ * map back to the original files.
+ *
+ * Vendored from grymmjack/qb64pe-vscode (MIT), `src/core/flatten.ts`. The only
+ * changes are the imports (`node:path`, `.ts` extension), so it runs under
+ * Node's TypeScript type-stripping.
+ *
+ * QB64PE only emits per-line debug instrumentation for the *main module*, so
+ * code inside `$INCLUDE`d `.bi`/`.bm` files is never breakpointable as-is.
+ * `$INCLUDE` is textual inclusion, so if we expand every include inline before
+ * compiling, the whole program becomes one main module.
+ */
+import * as path from "node:path";
+import { fileDirectiveAt } from "./parser.ts";
+
+export interface LineOrigin {
+  /** Absolute (resolved) path of the file this flattened line came from. */
+  file: string;
+  /** 1-based line number within that file. */
+  line: number;
+}
+
+export interface FlattenResult {
+  /** The flattened source text. */
+  text: string;
+  /** `origins[i]` is the origin of flattened line `i + 1` (1-based lines). */
+  origins: LineOrigin[];
+}
+
+export interface FlattenIO {
+  /** Read a file's text, or null if unreadable. */
+  readFile: (absPath: string) => string | null;
+  /** Resolve an `$INCLUDE` spec relative to the including file (abs path or null). */
+  resolve: (spec: string, fromFile: string) => string | null;
+  resolveLibrary?: (spec: string, fromFile: string) => string | null;
+}
+
+const INCLUDEONCE_RE = /^\s*\$INCLUDEONCE\b/i;
+const DECLARE_LIBRARY_RE = /^(\s*DECLARE\s+(?:DYNAMIC\s+)?LIBRARY\s+)"([^"]*)"(.*)$/i;
+
+/**
+ * Flatten `entryFile` and everything it includes. Files that declare
+ * `$INCLUDEONCE` are inlined at most once; include cycles are broken.
+ */
+export function flatten(entryFile: string, io: FlattenIO): FlattenResult {
+  const out: string[] = [];
+  const origins: LineOrigin[] = [];
+  const onceIncluded = new Set<string>();
+  const stack = new Set<string>();
+
+  const emit = (file: string, line: number, text: string) => {
+    out.push(text);
+    origins.push({ file, line });
+  };
+
+  const process = (absFile: string): void => {
+    if (stack.has(absFile)) return; // include cycle
+    const content = io.readFile(absFile);
+    if (content === null) return;
+
+    const lines = content.split(/\r?\n/);
+    if (lines.some((l) => INCLUDEONCE_RE.test(l))) {
+      if (onceIncluded.has(absFile)) return;
+      onceIncluded.add(absFile);
+    }
+
+    stack.add(absFile);
+    lines.forEach((raw, i) => {
+      const lineNo = i + 1;
+      if (INCLUDEONCE_RE.test(raw)) {
+        emit(absFile, lineNo, "");
+        return;
+      }
+      const lib = io.resolveLibrary ? DECLARE_LIBRARY_RE.exec(raw) : null;
+      if (lib) {
+        const abs = io.resolveLibrary!(lib[2], absFile);
+        emit(absFile, lineNo, abs ? `${lib[1]}"${abs}"${lib[3]}` : raw);
+        return;
+      }
+      const directive = fileDirectiveAt(raw);
+      if (directive && directive.kind === "INCLUDE") {
+        emit(absFile, lineNo, "");
+        const target = io.resolve(directive.path, absFile);
+        if (target) {
+          process(target);
+        } else {
+          emit(absFile, lineNo, "' [could not resolve include: " + directive.path + "]");
+        }
+        return;
+      }
+      emit(absFile, lineNo, raw);
+    });
+    stack.delete(absFile);
+  };
+
+  process(entryFile);
+  return { text: out.join("\n"), origins };
+}
+
+/**
+ * Build a reverse map from the origins: `fileKey -> (originalLine -> flatLine)`.
+ */
+export function buildReverseMap(
+  origins: LineOrigin[],
+  keyOf: (file: string) => string
+): Map<string, Map<number, number>> {
+  const map = new Map<string, Map<number, number>>();
+  origins.forEach((origin, i) => {
+    const flatLine = i + 1;
+    const key = keyOf(origin.file);
+    let byLine = map.get(key);
+    if (!byLine) {
+      byLine = new Map();
+      map.set(key, byLine);
+    }
+    if (!byLine.has(origin.line)) byLine.set(origin.line, flatLine);
+  });
+  return map;
+}
+
+/**
+ * Make `$EXEICON:'x'` and `$EMBED:'x','h'` paths absolute, relative to the file
+ * each flattened line came from, so the flattened copy compiles from anywhere.
+ */
+export function absolutizeMetaPaths(text: string, origins: LineOrigin[]): string {
+  const lines = text.split(/\r?\n/);
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const re = /^(\s*'?\s*\$(?:EXEICON|EMBED)\s*:\s*')([^']+)(')/i;
+  let changed = false;
+  for (let i = 0; i < lines.length; i++) {
+    const m = re.exec(lines[i]);
+    const origin = origins[i];
+    if (!m || !origin || path.isAbsolute(m[2]) || /^[A-Za-z]:[\\/]/.test(m[2])) continue;
+    const abs = path.resolve(path.dirname(origin.file), m[2]).replace(/\\/g, "/");
+    lines[i] = m[1] + abs + m[3] + lines[i].slice(m[0].length);
+    changed = true;
+  }
+  return changed ? lines.join(eol) : text;
+}

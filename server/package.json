@@ -1,0 +1,17 @@
+{
+  "name": "qb64pe-lsp",
+  "version": "0.5.0",
+  "private": true,
+  "description": "QB64-PE language server — outline, folding, diagnostics, hover, completion, navigation, call hierarchy, colours and semantic tokens over stdio.",
+  "type": "module",
+  "bin": {
+    "qb64pe-lsp": "src/server.ts"
+  },
+  "scripts": {
+    "start": "node src/server.ts --stdio",
+    "smoke": "node test/smoke.mjs",
+    "dap": "node src/dap/dapServer.ts --stdio",
+    "dap:smoke": "node test/dap-smoke.mjs"
+  },
+  "license": "MIT"
+}

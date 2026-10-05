@@ -1,0 +1,5 @@
+/target
+
+# Compiled debuggee artifacts produced by server/test/dap-smoke.mjs
+/server/test/fixtures/*.run
+/server/test/fixtures/*.exe

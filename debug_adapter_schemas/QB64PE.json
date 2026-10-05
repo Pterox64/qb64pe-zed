@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QB64-PE Debug Configuration",
+  "description": "Launch configuration for the QB64-PE (vwatch) debugger.",
+  "type": "object",
+  "required": ["program"],
+  "properties": {
+    "program": {
+      "type": "string",
+      "description": "Absolute path of the .bas program to compile (with $DEBUG) and debug."
+    },
+    "compilerPath": {
+      "type": "string",
+      "description": "Absolute path of the QB64PE compiler executable, e.g. /path/to/QB64pe/qb64pe."
+    },
+    "port": {
+      "type": "number",
+      "description": "TCP port the debugger hosts on (the debuggee connects back to it). Defaults to 9000."
+    },
+    "stopOnEntry": {
+      "type": "boolean",
+      "description": "Stop on the program's first executable line.",
+      "default": false
+    },
+    "autoAddDebug": {
+      "type": "boolean",
+      "description": "Append $DEBUG to a temporary copy if the source lacks it.",
+      "default": true
+    },
+    "timeoutMs": {
+      "type": "number",
+      "description": "Milliseconds to wait for the debuggee to connect back.",
+      "default": 15000
+    }
+  }
+}

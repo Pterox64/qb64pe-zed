@@ -1,0 +1,12 @@
+{{DISPLAYTITLE:_RGB32}}
+{{QBDLDATE:2024-01-01}}
+{{QBDLTIME:00:00:00}}
+'''_RGB32''' returns a 32-bit colour value.
+
+{{PageSyntax}}
+{{CodeStart}}
+colour~& = _RGB32(red, green, blue)
+{{CodeEnd}}
+
+{{PageDescription}}
+* Red, green and blue are {{InlineCode}}0{{InlineCodeEnd}}–{{InlineCode}}255{{InlineCodeEnd}}.
