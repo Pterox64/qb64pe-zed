@@ -306,6 +306,14 @@ Zed берёт `rustc`/`cargo` из своего `PATH`, поэтому запу
 остаться на системном Zed, уберите `zed-editor` из `packages` в `flake.nix` и
 запускайте свой бинарь внутри `nix develop`.
 
+Zed скачивает готовый `wasi-sdk` и вызывает его `clang`, чтобы собрать
+грамматику в wasm. Этот бинарь рассчитан на обычный FHS-дистрибутив и
+подгружает `libtinfo.so.6` и `libstdc++.so.6`, которых нет в путях загрузчика
+NixOS, — тогда шаг **compiling grammar `qb64`** падает с ошибкой
+`libtinfo.so.6: cannot open shared object file`. `flake.nix` уже пробрасывает
+эти библиотеки через `LD_LIBRARY_PATH`, поэтому Zed запускайте именно из
+`nix develop`.
+
 Если `qb64pe` доступен в shell, из которого запускается Zed, задачи сборки
 смогут вызвать его напрямую.
 

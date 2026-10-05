@@ -1,5 +1,8 @@
 /target
 
+# Dev extension build artifact produced by Zed in the extension root.
+/extension.wasm
+
 # Zed checks the grammar out here when building the dev extension.
 /grammars/
 

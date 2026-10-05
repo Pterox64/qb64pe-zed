@@ -41,6 +41,17 @@
               "rust-analyzer"
             ];
           };
+
+          # Zed downloads a prebuilt wasi-sdk and runs its clang to compile
+          # grammars to WebAssembly. That binary is built for a standard FHS
+          # distro and dynamically links libtinfo.so.6 and libstdc++.so.6,
+          # which are not on the NixOS loader path. Exposing them through
+          # LD_LIBRARY_PATH lets the bundled clang load when Zed is started
+          # from this shell.
+          wasiSdkLibs = with pkgs; [
+            ncurses
+            stdenv.cc.cc.lib
+          ];
         in
         {
           default = pkgs.mkShell {
@@ -61,13 +72,16 @@
             ];
 
             shellHook = ''
+              export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath wasiSdkLibs}:$LD_LIBRARY_PATH"
+
               echo "QB64-PE Zed extension development environment"
               echo "rustc:  $(rustc --version)"
               echo "cargo:  $(cargo --version)"
               echo "node:   $(node --version)"
               echo
               echo "Launch Zed from this shell, then run 'zed: install dev extension'"
-              echo "and pick this directory. Zed must see rustc/cargo in its PATH."
+              echo "and pick this directory. Zed must see rustc/cargo in its PATH and"
+              echo "wasi-sdk's clang must find libtinfo.so.6 / libstdc++.so.6."
             '';
           };
         }

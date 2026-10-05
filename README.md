@@ -300,6 +300,13 @@ shell** (close any already-running instance first). To stay on your system Zed,
 drop `zed-editor` from `packages` in `flake.nix` and run your own binary inside
 `nix develop`.
 
+Zed downloads a prebuilt `wasi-sdk` and runs its `clang` to compile the grammar
+to wasm. That binary targets a plain FHS distribution and loads
+`libtinfo.so.6` and `libstdc++.so.6`, which are absent from the NixOS loader
+path, so the **compiling grammar `qb64`** step fails with
+`libtinfo.so.6: cannot open shared object file`. `flake.nix` already forwards
+those libraries via `LD_LIBRARY_PATH`, so launch Zed from `nix develop`.
+
 If `qb64pe` is available in the shell from which Zed is launched, the build
 tasks can invoke it directly.
 

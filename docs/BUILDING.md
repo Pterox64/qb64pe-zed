@@ -253,6 +253,22 @@ Zed запускает `rustc` и `cargo` из своего `PATH`, поэтом
 остаться на системном Zed, уберите `zed-editor` из `packages` в `flake.nix` и
 запускайте свой бинарь внутри `nix develop`.
 
+Zed скачивает готовый `wasi-sdk` и вызывает его `clang`, чтобы собрать
+грамматику в wasm (`tree-sitter/qb64` → `grammars/qb64/qb64.wasm`). Этот бинарь
+рассчитан на обычный FHS-дистрибутив и подгружает `libtinfo.so.6` и
+`libstdc++.so.6`, которых нет в путях загрузчика NixOS. Без них шаг сборки
+грамматики падает с `error while loading shared libraries: libtinfo.so.6:
+cannot open shared object file`. `flake.nix` уже добавляет эти библиотеки в
+`LD_LIBRARY_PATH`, поэтому Zed нужно запускать именно из `nix develop`.
+
+Альтернатива: собрать грамматику через wasi-sdk из Nix. Zed понимает
+переменную `WASI_SDK_PATH` (корень с `bin/clang`); можно задать её вместо
+`LD_LIBRARY_PATH`:
+
+```sh
+WASI_SDK_PATH=$(nix build --no-link --print-out-paths nixpkgs#wasi-sdk) zed .
+```
+
 Если Rust ставится из Nix иначе, цель `wasm32-wasip2` нужно добавить в тулчейн
 (rust-overlay / fenix) или использовать `rustup`.
 
@@ -261,15 +277,13 @@ Zed запускает `rustc` и `cargo` из своего `PATH`, поэтом
 
 ---
 
-## 8. Что не проверено в этом окружении
+## 8. Что проверено в этом окружении
 
-Расширение собиралось и тестировалось без возможности запустить полную
-wasm-сборку Zed: в окружении автора отсутствовала стандартная библиотека Rust
-для `wasm32-wasip2`. Поэтому:
+- Rust-расширение собирается в wasm-компонент (Zed выполняет
+  `cargo build --target wasm32-wasip2` при установке Dev Extension);
+- грамматика `tree-sitter/qb64` компилируется в wasm встроенным wasi-sdk
+  (см. §7), `grammars/qb64/qb64.wasm` получается успешно;
+- поведение LSP и DAP проверено сквозными тестами против реального QB64PE 4.7.0.
 
-- Rust проверен через `cargo check` (host) против `zed_extension_api` 0.7.0;
-- поведение LSP и DAP проверено сквозными тестами против реального QB64PE 4.7.0;
-- сборка wasm и установка как Dev Extension в этом окружении **не** выполнялись.
-
-Шаги 1–3 выше — это и есть недостающая проверка; выполните их на машине с
-установленной целью `wasm32-wasip2`.
+Сам GUI-сценарий `zed: install dev extension` требует графической сессии и
+выполняется вручную один раз (§3).
