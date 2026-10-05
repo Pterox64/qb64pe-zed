@@ -38,7 +38,7 @@
 import { readFileSync } from "node:fs";
 
 // ---------------------------------------------------------------------------
-// Keyword vocabulary (kept in sync with grammars/qb64/grammar.js).
+// Keyword vocabulary (kept in sync with tree-sitter/qb64/grammar.js).
 // ---------------------------------------------------------------------------
 
 const KEYWORDS = new Set(

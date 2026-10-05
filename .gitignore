@@ -1,5 +1,8 @@
 /target
 
+# Zed checks the grammar out here when building the dev extension.
+/grammars/
+
 # Compiled debuggee artifacts produced by server/test/dap-smoke.mjs
 /server/test/fixtures/*.run
 /server/test/fixtures/*.exe

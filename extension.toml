@@ -11,7 +11,7 @@ snippets = ["./snippets/qb64-pe.json"]
 [grammars.qb64]
 repository = "file:///home/yegor/git/yegor/qb64pe/qb64-zed"
 rev = "main"
-path = "grammars/qb64"
+path = "tree-sitter/qb64"
 
 [language_servers.qb64pe]
 name = "QB64-PE Language Server"

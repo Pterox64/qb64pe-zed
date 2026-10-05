@@ -46,8 +46,8 @@ Zed documents Dev Extensions here:
 > debugger are in [`docs/BUILDING.md`](docs/BUILDING.md). In short: Rust with the
 > `wasm32-wasip2` target, Node 24+, and a QB64PE install.
 
-> The grammar lives in this repository under `grammars/qb64`. After changing
-> `grammars/qb64/grammar.js`, run `tree-sitter generate` there and commit
+> The grammar lives in this repository under `tree-sitter/qb64`. After changing
+> `tree-sitter/qb64/grammar.js`, run `tree-sitter generate` there and commit
 > `src/parser.c` / `src/node-types.json` in this repository so Zed builds the
 > updated parser. (Zed compiles the grammar to WebAssembly itself via `wasi-sdk`.)
 
@@ -285,17 +285,30 @@ The **stop** path (breakpoint / `stopOnEntry`) needs a graphical environment:
 Launching, `run`, the call stack and `quit` work regardless. Live variable values
 and breakpoint stops are best verified in a normal graphical session.
 
-## NixOS
+## Nix / NixOS
+
+The repository ships a `flake.nix` with a ready environment: Rust stable with
+the `wasm32-wasip2` target, Node 24, `git`, `tree-sitter` and Zed.
+
+```sh
+nix develop
+zed .
+```
+
+Zed resolves `rustc`/`cargo` from its own `PATH`, so launch it **from that
+shell** (close any already-running instance first). To stay on your system Zed,
+drop `zed-editor` from `packages` in `flake.nix` and run your own binary inside
+`nix develop`.
 
 If `qb64pe` is available in the shell from which Zed is launched, the build
 tasks can invoke it directly.
 
 ## Regenerating the grammar
 
-The grammar source of truth is `grammars/qb64/grammar.js`. After editing it:
+The grammar source of truth is `tree-sitter/qb64/grammar.js`. After editing it:
 
 ```sh
-cd grammars/qb64
+cd tree-sitter/qb64
 npx tree-sitter-cli generate        # updates src/parser.c, src/node-types.json
 ```
 

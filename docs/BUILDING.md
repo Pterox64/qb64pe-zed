@@ -7,7 +7,7 @@
 
 | Часть | Чем является | Чем запускается |
 | --- | --- | --- |
-| Грамматика | Tree-sitter-парсер (`grammars/qb64/`) | Zed компилирует в wasm сам (wasi-sdk) |
+| Грамматика | Tree-sitter-парсер (`tree-sitter/qb64/`) | Zed компилирует в wasm сам (wasi-sdk) |
 | Расширение (Rust) | wasm-компонент (`src/lib.rs`) | Zed компилирует в `wasm32-wasip2` |
 | Языковой сервер (LSP) | Node-процесс (`server/src/server.ts`) | запускает Rust-расширение |
 | Отладчик (DAP) | Node-процесс (`server/src/dap/dapServer.ts`) | запускает Rust-расширение |
@@ -29,6 +29,7 @@ Rust-часть — только «пускач»: она сообщает Zed, 
 
   > Zed использует именно `wasm32-wasip2`. Если Rust поставлен не через
   > `rustup` (например, из дистрибутива/Nix), цель нужно добавить вручную.
+  > В этом репозитории есть `flake.nix`, где цель уже включена: см. §7.
 - **wasi-sdk** — для сборки грамматики. Zed скачивает его сам; чтобы указать
   существующую установку, задайте `WASI_SDK_PATH` на её корень (тот, где лежит
   `bin/clang`).
@@ -45,20 +46,24 @@ Rust-часть — только «пускач»: она сообщает Zed, 
 ### 2.1. Путь к грамматике
 
 `extension.toml` ссылается на грамматику, которая лежит в этом же
-репозитории, в подкаталоге `grammars/qb64`:
+репозитории, в подкаталоге `tree-sitter/qb64`:
 
 ```toml
 [grammars.qb64]
 repository = "file:///home/yegor/git/yegor/qb64pe/qb64-zed"
 rev = "main"
-path = "grammars/qb64"
+path = "tree-sitter/qb64"
 ```
 
 **Обязательно поправьте `repository`** на абсолютный путь к корню расширения
 на вашей машине (каталог с `extension.toml`). Поле `path` указывает, что
-грамматика лежит в подкаталоге `grammars/qb64`. `rev` может быть веткой
+грамматика лежит в подкаталоге `tree-sitter/qb64`. `rev` может быть веткой
 (`main` — удобно при локальной правке грамматики) или коммитом (надёжнее для
 воспроизводимости).
+
+> Zed всегда клонирует грамматику в `<расширение>/grammars/qb64` и собирает
+> `qb64.wasm` рядом. Этот каталог создаётся Zed при сборке и в репозитории не
+> хранится (он в `.gitignore`); исходники грамматики лежат в `tree-sitter/qb64`.
 
 ### 2.2. Коммит грамматики
 
@@ -66,7 +71,7 @@ Zed собирает парсер из зафиксированной ревиз
 нужно закоммитить в этом же репозитории:
 
 ```sh
-git add grammars/qb64 && git commit -m "Update grammar"
+git add tree-sitter/qb64 && git commit -m "Update grammar"
 ```
 
 Незакоммиченные правки `grammar.js`/`src/parser.c` Zed не увидит.
@@ -89,7 +94,7 @@ cd .. && node --version         # должно быть >= 24
 
 1. Откройте палитру команд Zed и выполните **`zed: install dev extension`**.
 2. Выберите **корень расширения** — каталог с `extension.toml`
-   (не `grammars/qb64`).
+   (не `tree-sitter/qb64`).
 3. Zed сам соберёт Rust в wasm (`wasm32-wasip2`) и компилирует грамматику через
    wasi-sdk. Откройте `.bas` — должна появиться подсветка.
 
@@ -101,7 +106,7 @@ Zed документирует это здесь:
 - Логи: **`zed: open log`**. Подробнее — запустить Zed из терминала:
   `zed --foreground`.
 - Если грамматика не подхватилась — почти всегда неверный `repository`/`path`
-  в `extension.toml` или незакоммиченная ревизия в `grammars/qb64`.
+  в `extension.toml` или незакоммиченная ревизия в `tree-sitter/qb64`.
 - Можно проверить Rust отдельно (без Zed):
 
   ```sh
@@ -219,13 +224,13 @@ QB64PE_COMPILER=/путь/к/QB64pe/qb64pe npm run dap:smoke
 
 ## 6. Правка грамматики
 
-Источник истины — `grammars/qb64/grammar.js`. После правки:
+Источник истины — `tree-sitter/qb64/grammar.js`. После правки:
 
 ```sh
-cd grammars/qb64
+cd tree-sitter/qb64
 tree-sitter generate        # обновляет src/parser.c и src/node-types.json
 cd ../..
-git add grammars/qb64 && git commit -m "..."
+git add tree-sitter/qb64 && git commit -m "..."
 ```
 
 Сгенерированный `src/grammar.json` не должен попадать в коммит (он в
@@ -233,12 +238,26 @@ git add grammars/qb64 && git commit -m "..."
 
 ---
 
-## 7. NixOS
+## 7. Nix / NixOS
+
+В репозитории есть `flake.nix` с готовым окружением: Rust stable, цель
+`wasm32-wasip2`, Node 24, `git`, `tree-sitter` и Zed.
+
+```sh
+nix develop
+zed .
+```
+
+Zed запускает `rustc` и `cargo` из своего `PATH`, поэтому его нужно запускать
+**из этого шелла** (ранее запущенный экземпляр — закрыть). Если хотите
+остаться на системном Zed, уберите `zed-editor` из `packages` в `flake.nix` и
+запускайте свой бинарь внутри `nix develop`.
+
+Если Rust ставится из Nix иначе, цель `wasm32-wasip2` нужно добавить в тулчейн
+(rust-overlay / fenix) или использовать `rustup`.
 
 Если `qb64pe` и Node 24 доступны в shell, из которого запускается Zed,
-серверы и задачи сборки находят их через `$PATH`. Если Rust ставится из Nix,
-цель `wasm32-wasip2` нужно добавить в тулчейн (rust-overlay / fenix) или
-использовать `rustup`.
+серверы и задачи сборки находят их через `$PATH`.
 
 ---
 

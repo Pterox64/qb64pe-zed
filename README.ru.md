@@ -46,8 +46,8 @@
 > языкового сервера и отладчика — в [`docs/BUILDING.md`](docs/BUILDING.md).
 > Коротко: Rust с целью `wasm32-wasip2`, Node 24+ и установленный QB64PE.
 
-> Грамматика лежит в этом же репозитории, в подкаталоге `grammars/qb64`.
-> После правки `grammars/qb64/grammar.js` выполните там `tree-sitter generate`
+> Грамматика лежит в этом же репозитории, в подкаталоге `tree-sitter/qb64`.
+> После правки `tree-sitter/qb64/grammar.js` выполните там `tree-sitter generate`
 > и закоммитьте `src/parser.c` / `src/node-types.json` в этом репозитории,
 > чтобы Zed собрал обновлённый парсер. (Сам wasm Zed собирает через `wasi-sdk`.)
 
@@ -291,17 +291,30 @@ Rust-пускач находит адаптер в том же порядке, �
 работают. Живые значения переменных и останов на точке останова стоит проверять в
 обычной графической сессии.
 
-## NixOS
+## Nix / NixOS
+
+В репозитории есть `flake.nix` с готовым окружением: Rust stable с целью
+`wasm32-wasip2`, Node 24, `git`, `tree-sitter` и Zed.
+
+```sh
+nix develop
+zed .
+```
+
+Zed берёт `rustc`/`cargo` из своего `PATH`, поэтому запускать его нужно
+**из этого шелла** (ранее запущенный экземпляр — закрыть). Если хотите
+остаться на системном Zed, уберите `zed-editor` из `packages` в `flake.nix` и
+запускайте свой бинарь внутри `nix develop`.
 
 Если `qb64pe` доступен в shell, из которого запускается Zed, задачи сборки
 смогут вызвать его напрямую.
 
 ## Пересборка грамматики
 
-Источник истины для грамматики — `grammars/qb64/grammar.js`. После правки:
+Источник истины для грамматики — `tree-sitter/qb64/grammar.js`. После правки:
 
 ```sh
-cd grammars/qb64
+cd tree-sitter/qb64
 npx tree-sitter-cli generate        # обновляет src/parser.c, src/node-types.json
 ```
 
