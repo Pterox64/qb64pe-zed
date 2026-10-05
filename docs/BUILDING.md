@@ -44,27 +44,29 @@ Rust-часть — только «пускач»: она сообщает Zed, 
 
 ### 2.1. Путь к грамматике
 
-`extension.toml` ссылается на грамматику как на локальный git-репозиторий:
+`extension.toml` ссылается на грамматику, которая лежит в этом же
+репозитории, в подкаталоге `grammars/qb64`:
 
 ```toml
 [grammars.qb64]
-repository = "file:///home/yegor/git/yegor/qb64pe/qb64-zed/grammars/qb64"
+repository = "file:///home/yegor/git/yegor/qb64pe/qb64-zed"
 rev = "main"
+path = "grammars/qb64"
 ```
 
-**Обязательно поправьте `repository`** на абсолютный путь к `grammars/qb64` на
-вашей машине (именно этот путь, а не на корень расширения). `rev` может быть
-веткой (`main` — удобно при локальной правке грамматики) или коммитом
-(надёжнее для воспроизводимости).
+**Обязательно поправьте `repository`** на абсолютный путь к корню расширения
+на вашей машине (каталог с `extension.toml`). Поле `path` указывает, что
+грамматика лежит в подкаталоге `grammars/qb64`. `rev` может быть веткой
+(`main` — удобно при локальной правке грамматики) или коммитом (надёжнее для
+воспроизводимости).
 
 ### 2.2. Коммит грамматики
 
 Zed собирает парсер из зафиксированной ревизии, поэтому изменения грамматики
-нужно закоммитить в её репозитории:
+нужно закоммитить в этом же репозитории:
 
 ```sh
-cd grammars/qb64
-git add -A && git commit -m "Update grammar"
+git add grammars/qb64 && git commit -m "Update grammar"
 ```
 
 Незакоммиченные правки `grammar.js`/`src/parser.c` Zed не увидит.
@@ -98,8 +100,8 @@ Zed документирует это здесь:
 
 - Логи: **`zed: open log`**. Подробнее — запустить Zed из терминала:
   `zed --foreground`.
-- Если грамматика не подхватилась — почти всегда неверный `repository` в
-  `extension.toml` или незакоммиченная ревизия в `grammars/qb64`.
+- Если грамматика не подхватилась — почти всегда неверный `repository`/`path`
+  в `extension.toml` или незакоммиченная ревизия в `grammars/qb64`.
 - Можно проверить Rust отдельно (без Zed):
 
   ```sh
@@ -222,7 +224,8 @@ QB64PE_COMPILER=/путь/к/QB64pe/qb64pe npm run dap:smoke
 ```sh
 cd grammars/qb64
 tree-sitter generate        # обновляет src/parser.c и src/node-types.json
-git add -A && git commit -m "..."
+cd ../..
+git add grammars/qb64 && git commit -m "..."
 ```
 
 Сгенерированный `src/grammar.json` не должен попадать в коммит (он в

@@ -1,0 +1,17 @@
+{
+  "grammars": [
+    {
+      "name": "qb64",
+      "scope": "source.qb64",
+      "file-types": ["bas", "bi", "bm"]
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "QB64-PE grammar for Zed",
+    "links": {
+      "repository": "https://github.com/qb64pe/qb64pe"
+    }
+  }
+}

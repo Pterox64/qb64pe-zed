@@ -46,10 +46,10 @@ Zed documents Dev Extensions here:
 > debugger are in [`docs/BUILDING.md`](docs/BUILDING.md). In short: Rust with the
 > `wasm32-wasip2` target, Node 24+, and a QB64PE install.
 
-> The grammar is loaded from the nested git repository in `grammars/qb64`.
-> After changing `grammars/qb64/grammar.js`, run `tree-sitter generate` there
-> and commit `src/parser.c` / `src/node-types.json` so Zed builds the updated
-> parser. (Zed compiles the grammar to WebAssembly itself via `wasi-sdk`.)
+> The grammar lives in this repository under `grammars/qb64`. After changing
+> `grammars/qb64/grammar.js`, run `tree-sitter generate` there and commit
+> `src/parser.c` / `src/node-types.json` in this repository so Zed builds the
+> updated parser. (Zed compiles the grammar to WebAssembly itself via `wasi-sdk`.)
 
 ## Syntax highlighting, outline and folding
 

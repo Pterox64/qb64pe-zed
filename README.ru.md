@@ -46,10 +46,10 @@
 > языкового сервера и отладчика — в [`docs/BUILDING.md`](docs/BUILDING.md).
 > Коротко: Rust с целью `wasm32-wasip2`, Node 24+ и установленный QB64PE.
 
-> Грамматика загружается из вложенного git-репозитория `grammars/qb64`. После
-> правки `grammars/qb64/grammar.js` выполните там `tree-sitter generate` и
-> закоммитьте `src/parser.c` / `src/node-types.json`, чтобы Zed собрал
-> обновлённый парсер. (Сам wasm Zed собирает через `wasi-sdk`.)
+> Грамматика лежит в этом же репозитории, в подкаталоге `grammars/qb64`.
+> После правки `grammars/qb64/grammar.js` выполните там `tree-sitter generate`
+> и закоммитьте `src/parser.c` / `src/node-types.json` в этом репозитории,
+> чтобы Zed собрал обновлённый парсер. (Сам wasm Zed собирает через `wasi-sdk`.)
 
 ## Подсветка, структура и сворачивание
 
