@@ -162,8 +162,8 @@ export QB64PE_COMPILER=/путь/к/QB64pe/qb64pe
 прикладывает его автоматически:
 
 ```sh
-git tag v0.3.2
-git push origin v0.3.2
+git tag v0.3.3
+git push origin v0.3.3
 ```
 
 Либо запустите workflow вручную (Actions → Release server bundle → Run
@@ -316,7 +316,63 @@ WASI_SDK_PATH=$(nix build --no-link --print-out-paths nixpkgs#wasi-sdk) zed .
 
 ---
 
-## 8. Что проверено в этом окружении
+## 8. Публикация в реестр Zed
+
+Установка «в один клик» через `zed: extensions` работает только для расширений
+из реестра [`zed-industries/extensions`](https://github.com/zed-industries/extensions).
+Пока расширения там нет, доступна лишь установка как Dev Extension (§3).
+
+Предусловия:
+
+- репозиторий расширения публичный;
+- в репозитории есть принятая лицензия — [`LICENSE`](../LICENSE) (MIT); без неё
+  PR отклоняют;
+- `version` в `extension.toml` совпадает с версией в записи реестра.
+
+Порядок (по [гайду публикации](https://zed.dev/docs/extensions/publishing/publishing-guide)):
+
+```sh
+# форк zed-industries/extensions лучше в личный аккаунт — так
+# мейнтейнеры смогут пушить правки прямо в PR
+git clone https://github.com/<вы>/extensions
+cd extensions
+git submodule init && git submodule update
+```
+
+Добавьте расширение сабмодулем. URL только HTTPS (не `git@github.com`), а
+коммит должен быть на ветке, не «detached»:
+
+```sh
+git submodule add https://github.com/Pterox64/qb64pe-zed.git extensions/qb64
+git add extensions/qb64
+```
+
+В корневом `extensions.toml` добавьте запись (ключ — это `id` из
+`extension.toml`, он же `qb64`):
+
+```toml
+[qb64]
+submodule = "extensions/qb64"
+version = "0.3.3"
+```
+
+`version` здесь должен совпадать с `extension.toml` на том коммите сабмодуля,
+который попал в PR. Отсортируйте файл:
+
+```sh
+pnpm sort-extensions
+```
+
+Осталось открыть PR. Правила реестра: один PR — ровно одно расширение, не
+более трёх открытых PR одновременно, ответ на замечания мейнтейнера в течение
+трёх недель (иначе PR закроют).
+
+Для обновления расширения: поднимите `version` на патч, создайте тег (§4.1.1),
+обновите сабмодуль до нового коммита и `version` в `extensions.toml`, затем PR.
+
+---
+
+## 9. Что проверено в этом окружении
 
 - Rust-расширение собирается в wasm-компонент (Zed выполняет
   `cargo build --target wasm32-wasip2` при установке Dev Extension);
