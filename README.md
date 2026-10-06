@@ -217,9 +217,11 @@ environment variables. Without any of them, hover still describes built-ins.
 
 The Rust launcher (`src/lib.rs`) resolves the server in this order: a
 `qb64pe-lsp` binary on `$PATH`; otherwise Node running the script named by the
-`QB64PE_LSP_SERVER` environment variable. The Node binary itself is taken from
-`QB64PE_NODE`, then Zed's bundled runtime (`node_binary_path`), then `node` on
-`$PATH` — **Node 24+ (or ≥ 22.18) is required** for TypeScript type-stripping.
+`QB64PE_LSP_SERVER` environment variable; and, when that variable is unset, the
+`server/src/server.ts` script of an opened checkout of this repository. The Node
+binary itself is taken from `QB64PE_NODE`, then Zed's bundled runtime
+(`node_binary_path`), then `node` on `$PATH` — **Node 24+ (or ≥ 22.18) is
+required** for TypeScript type-stripping.
 
 ## Debugger (`vwatch`)
 
@@ -239,9 +241,10 @@ node src/dap/dapServer.ts --stdio   # speak DAP on stdin/stdout
 ```
 
 The Rust launcher resolves the adapter in the same order as the language server:
-a `qb64pe-dap` binary on `$PATH`, otherwise Node running the script named by the
-`QB64PE_DAP_SERVER` environment variable. The compiler path is taken from the
-launch config's `compilerPath`, falling back to the `QB64PE_COMPILER`
+a `qb64pe-dap` binary on `$PATH`; otherwise Node running the script named by the
+`QB64PE_DAP_SERVER` environment variable; and, when that variable is unset, this
+repository's own `server/src/dap/dapServer.ts`. The compiler path is taken from
+the launch config's `compilerPath`, falling back to the `QB64PE_COMPILER`
 environment variable. A launch configuration looks like:
 
 ```jsonc

@@ -222,9 +222,10 @@ export QB64PE_INSTALL_PATH=/path/to/QB64pe
 
 Rust-пускач (`src/lib.rs`) находит сервер в таком порядке: бинарь `qb64pe-lsp` в
 `$PATH`; иначе — Node, запускающий скрипт из переменной окружения
-`QB64PE_LSP_SERVER`. Сам Node берётся из `QB64PE_NODE`, затем встроенный в Zed
-(`node_binary_path`), затем `node` из `$PATH` — **нужен Node 24+ (или ≥ 22.18)**
-для type-stripping TypeScript.
+`QB64PE_LSP_SERVER`; а если она не задана — скрипт `server/src/server.ts` из
+открытой копии этого репозитория. Сам Node берётся из `QB64PE_NODE`, затем
+встроенный в Zed (`node_binary_path`), затем `node` из `$PATH` — **нужен Node 24+
+(или ≥ 22.18)** для type-stripping TypeScript.
 
 ## Отладчик (`vwatch`)
 
@@ -244,10 +245,11 @@ node src/dap/dapServer.ts --stdio   # говорить по DAP через stdin
 ```
 
 Rust-пускач находит адаптер в том же порядке, что и языковой сервер: бинарь
-`qb64pe-dap` в `$PATH`, иначе — Node, запускающий скрипт из переменной окружения
-`QB64PE_DAP_SERVER`. Путь к компилятору берётся из `compilerPath` конфигурации
-запуска, а если его нет — из переменной окружения `QB64PE_COMPILER`. Конфигурация
-запуска выглядит так:
+`qb64pe-dap` в `$PATH`; иначе — Node, запускающий скрипт из переменной окружения
+`QB64PE_DAP_SERVER`; а если она не задана — скрипт `server/src/dap/dapServer.ts`
+из открытой копии этого репозитория. Путь к компилятору берётся из
+`compilerPath` конфигурации запуска, а если его нет — из переменной окружения
+`QB64PE_COMPILER`. Конфигурация запуска выглядит так:
 
 ```jsonc
 {

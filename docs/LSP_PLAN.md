@@ -42,8 +42,10 @@ cd server && node src/server.ts --stdio   # или: npm run smoke
 ```
 
 Rust-пускач ищет, в порядке приоритета: бинарь `qb64pe-lsp` в `$PATH`; иначе
-Node (сначала встроенный в Zed через `zed::node_binary_path`, потом из `$PATH`)
-вместе с путём к скрипту из переменной окружения `QB64PE_LSP_SERVER`.
+Node (сначала `QB64PE_NODE`, потом встроенный в Zed через
+`zed::node_binary_path`, потом из `$PATH`) вместе с путём к скрипту: из
+переменной окружения `QB64PE_LSP_SERVER`, а если она не задана —
+`server/src/server.ts` из открытой копии этого репозитория.
 
 ---
 

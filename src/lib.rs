@@ -5,13 +5,16 @@
 //! launch the QB64-PE language server, which runs as an ordinary host process
 //! and speaks LSP over stdio (a wasm component cannot host an LSP server).
 //!
-//! Resolution order for the server:
+//! Resolution order for each server:
 //!
-//! 1. `qb64pe-lsp` on the user's `$PATH` — a self-contained binary, the
-//!    intended distribution once binaries are published.
-//! 2. Zed's bundled Node (`zed::node_binary_path`) or a `node` from `$PATH`,
-//!    running the server script named by the `QB64PE_LSP_SERVER` environment
-//!    variable. This is the development / bring-your-own-server path.
+//! 1. `qb64pe-lsp` / `qb64pe-dap` on the user's `$PATH` — a self-contained
+//!    binary, the intended distribution once binaries are published.
+//! 2. The script named by `QB64PE_LSP_SERVER` / `QB64PE_DAP_SERVER`, run by Node.
+//! 3. The script inside a checkout of this very repository, run by Node, so
+//!    that opening the extension's own worktree needs no configuration.
+//!
+//! The Node binary is taken from `QB64PE_NODE`, then Zed's bundled runtime
+//! (`zed::node_binary_path`), then a `node` from the worktree `$PATH`.
 
 use zed_extension_api::{self as zed, Result};
 
@@ -29,6 +32,18 @@ const DAP_SCRIPT_ENV: &str = "QB64PE_DAP_SERVER";
 
 /// Environment variable overriding the Node executable used to run the servers.
 const NODE_ENV: &str = "QB64PE_NODE";
+
+/// Extension manifest, used to recognize a checkout of this repository.
+const MANIFEST_PATH: &str = "extension.toml";
+
+/// Value that identifies this extension in [`MANIFEST_PATH`].
+const EXTENSION_ID: &str = "id = \"qb64\"";
+
+/// Server entry script, relative to the repository root.
+const SERVER_SCRIPT_PATH: &str = "server/src/server.ts";
+
+/// DAP adapter entry script, relative to the repository root.
+const DAP_SCRIPT_PATH: &str = "server/src/dap/dapServer.ts";
 
 struct Qb64Extension;
 
@@ -65,6 +80,24 @@ impl Qb64Extension {
             .into_iter()
             .find_map(|(key, value)| (key == name).then_some(value))
     }
+
+    /// Locates a server script inside the opened worktree.
+    ///
+    /// This lets the servers run straight from a checkout of this extension's
+    /// own repository, so opening it in Zed works without any environment
+    /// variables. The worktree is only treated as that repository when its
+    /// manifest carries this extension's id, so unrelated projects are never
+    /// misdetected.
+    fn worktree_script(worktree: &zed::Worktree, relative: &str) -> Option<String> {
+        let manifest = worktree.read_text_file(MANIFEST_PATH).ok()?;
+        if !manifest.contains(EXTENSION_ID) {
+            return None;
+        }
+        // Confirm the entry script actually exists before handing it to Node.
+        worktree.read_text_file(relative).ok()?;
+        let root = worktree.root_path();
+        Some(format!("{}/{}", root.trim_end_matches('/'), relative))
+    }
 }
 
 impl zed::Extension for Qb64Extension {
@@ -86,15 +119,19 @@ impl zed::Extension for Qb64Extension {
             });
         }
 
-        // 2. Otherwise run the TypeScript server with Node.
-        let script = Self::env_var(worktree, SERVER_SCRIPT_ENV).ok_or_else(|| {
-            format!(
-                "QB64-PE language server not found. Install `{SERVER_BINARY}` on your \
-                 $PATH, or set {SERVER_SCRIPT_ENV} to the path of `server/src/server.ts`."
-            )
-        })?;
+        // 2. Otherwise run the TypeScript server with Node, either from the
+        //    path in the environment or from this repository's own checkout.
+        if let Some(script) = Self::env_var(worktree, SERVER_SCRIPT_ENV)
+            .or_else(|| Self::worktree_script(worktree, SERVER_SCRIPT_PATH))
+        {
+            return Self::node_command(worktree, &script);
+        }
 
-        Self::node_command(worktree, &script)
+        Err(format!(
+            "QB64-PE language server not found. Install `{SERVER_BINARY}` on your \
+             $PATH, set {SERVER_SCRIPT_ENV} to the path of `{SERVER_SCRIPT_PATH}`, or \
+             open a checkout of the qb64pe-zed repository."
+        ))
     }
 
     fn get_dap_binary(
@@ -105,22 +142,26 @@ impl zed::Extension for Qb64Extension {
         worktree: &zed::Worktree,
     ) -> Result<zed::DebugAdapterBinary, String> {
         // 1. A standalone DAP adapter binary on $PATH wins.
-        let command = if let Some(binary) = worktree.which(DAP_BINARY) {
+        let (command, arguments) = if let Some(binary) = worktree.which(DAP_BINARY) {
             (binary, vec!["--stdio".to_string()])
+        } else if let Some(script) = Self::env_var(worktree, DAP_SCRIPT_ENV)
+            .or_else(|| Self::worktree_script(worktree, DAP_SCRIPT_PATH))
+        {
+            // 2. Otherwise run the TypeScript adapter with Node, resolving the
+            //    Node binary exactly like the language server does.
+            let command = Self::node_command(worktree, &script)?;
+            (command.command, command.args)
         } else {
-            let script = Self::env_var(worktree, DAP_SCRIPT_ENV).ok_or_else(|| {
-                format!(
-                    "QB64-PE debug adapter not found. Install `{DAP_BINARY}` on your \
-                     $PATH, or set {DAP_SCRIPT_ENV} to the path of `server/src/dap/dapServer.ts`."
-                )
-            })?;
-            let node = zed::node_binary_path().map_err(|e| e.to_string())?;
-            (node, vec![script, "--stdio".to_string()])
+            return Err(format!(
+                "QB64-PE debug adapter not found. Install `{DAP_BINARY}` on your $PATH, \
+                 set {DAP_SCRIPT_ENV} to the path of `{DAP_SCRIPT_PATH}`, or open a \
+                 checkout of the qb64pe-zed repository."
+            ));
         };
 
         Ok(zed::DebugAdapterBinary {
-            command: Some(command.0),
-            arguments: command.1,
+            command: Some(command),
+            arguments,
             envs: Vec::new(),
             cwd: None,
             connection: None,
