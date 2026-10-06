@@ -50,7 +50,7 @@ Rust-часть — только «пускач»: она сообщает Zed, 
 
 ```toml
 [grammars.qb64]
-repository = "file:///home/yegor/git/yegor/qb64pe/qb64-zed"
+repository = "file:///home/yegor/git/yegor/qb64pe/qb64pe-zed"
 rev = "main"
 path = "tree-sitter/qb64"
 ```
@@ -128,8 +128,8 @@ Rust-пускач находит серверы так:
 Для запуска из исходников задайте в окружении, из которого стартует Zed:
 
 ```sh
-export QB64PE_LSP_SERVER=/абсолютный/путь/qb64-zed/server/src/server.ts
-export QB64PE_DAP_SERVER=/абсолютный/путь/qb64-zed/server/src/dap/dapServer.ts
+export QB64PE_LSP_SERVER=/абсолютный/путь/qb64pe-zed/server/src/server.ts
+export QB64PE_DAP_SERVER=/абсолютный/путь/qb64pe-zed/server/src/dap/dapServer.ts
 # если встроенный Node в Zed старее 24:
 export QB64PE_NODE=/путь/к/node
 # компилятор QB64PE (для отладчика):
@@ -166,7 +166,7 @@ export QB64PE_INSTALL_PATH=/путь/к/QB64pe
       "formatter": {
         "external": {
           "command": "node",
-          "arguments": ["/абсолютный/путь/qb64-zed/scripts/qb64pe-fmt.mjs"]
+          "arguments": ["/абсолютный/путь/qb64pe-zed/scripts/qb64pe-fmt.mjs"]
         }
       }
     }

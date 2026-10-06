@@ -91,7 +91,7 @@ settings (see also the extension's own docs for the `formatter` key):
       "formatter": {
         "external": {
           "command": "node",
-          "arguments": ["/absolute/path/to/qb64-zed/scripts/qb64pe-fmt.mjs"]
+          "arguments": ["/absolute/path/to/qb64pe-zed/scripts/qb64pe-fmt.mjs"]
         }
       }
     }
