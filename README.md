@@ -44,15 +44,16 @@ In Zed:
 Zed documents Dev Extensions here:
 <https://zed.dev/docs/extensions/developing-extensions>
 
-> Full prerequisites, the grammar path you must edit in `extension.toml`, and the
+> Full prerequisites, how the grammar is fetched in `extension.toml`, and the
 > environment variables / `settings.json` needed to run the language server and
 > debugger are in [`docs/BUILDING.md`](docs/BUILDING.md). In short: Rust with the
 > `wasm32-wasip2` target, Node 24+, and a QB64PE install.
 
-> The grammar lives in this repository under `tree-sitter/qb64`. After changing
-> `tree-sitter/qb64/grammar.js`, run `tree-sitter generate` there and commit
-> `src/parser.c` / `src/node-types.json` in this repository so Zed builds the
-> updated parser. (Zed compiles the grammar to WebAssembly itself via `wasi-sdk`.)
+> The grammar lives in this repository under `tree-sitter/qb64` and is fetched
+> from the public GitHub repository. After changing `tree-sitter/qb64/grammar.js`,
+> run `tree-sitter generate` there and commit **and push** `src/parser.c` /
+> `src/node-types.json` so Zed builds the updated parser. (Zed compiles the
+> grammar to WebAssembly itself via `wasi-sdk`.)
 
 ## Syntax highlighting, outline and folding
 
@@ -320,7 +321,11 @@ The grammar source of truth is `tree-sitter/qb64/grammar.js`. After editing it:
 ```sh
 cd tree-sitter/qb64
 npx tree-sitter-cli generate        # updates src/parser.c, src/node-types.json
+git add src && git commit -m "Update grammar" && git push
 ```
+
+`extension.toml` fetches the grammar from the public repository, so the change is
+only picked up once it is pushed.
 
 ## License
 

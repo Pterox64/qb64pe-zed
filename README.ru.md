@@ -44,15 +44,16 @@
 Документация Zed по Dev Extensions:
 <https://zed.dev/docs/extensions/developing-extensions>
 
-> Полный список требований, путь к грамматике, который нужно поправить в
-> `extension.toml`, а также переменные окружения и `settings.json` для запуска
-> языкового сервера и отладчика — в [`docs/BUILDING.md`](docs/BUILDING.md).
+> Полный список требований, как задаётся источник грамматики в `extension.toml`,
+> а также переменные окружения и `settings.json` для запуска языкового сервера и
+> отладчика — в [`docs/BUILDING.md`](docs/BUILDING.md).
 > Коротко: Rust с целью `wasm32-wasip2`, Node 24+ и установленный QB64PE.
 
-> Грамматика лежит в этом же репозитории, в подкаталоге `tree-sitter/qb64`.
-> После правки `tree-sitter/qb64/grammar.js` выполните там `tree-sitter generate`
-> и закоммитьте `src/parser.c` / `src/node-types.json` в этом репозитории,
-> чтобы Zed собрал обновлённый парсер. (Сам wasm Zed собирает через `wasi-sdk`.)
+> Грамматика лежит в этом же репозитории, в подкаталоге `tree-sitter/qb64`, и
+> подтягивается из публичного репозитория на GitHub. После правки
+> `tree-sitter/qb64/grammar.js` выполните там `tree-sitter generate` и
+> закоммитьте **и запушьте** `src/parser.c` / `src/node-types.json`, чтобы Zed
+> собрал обновлённый парсер. (Сам wasm Zed собирает через `wasi-sdk`.)
 
 ## Подсветка, структура и сворачивание
 
@@ -327,7 +328,11 @@ NixOS, — тогда шаг **compiling grammar `qb64`** падает с оши
 ```sh
 cd tree-sitter/qb64
 npx tree-sitter-cli generate        # обновляет src/parser.c, src/node-types.json
+git add src && git commit -m "Update grammar" && git push
 ```
+
+`extension.toml` берёт грамматику из публичного репозитория, поэтому изменение
+подхватится только после пуша.
 
 ## Лицензия
 
