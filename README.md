@@ -5,6 +5,9 @@ extension [`grymmjack/qb64pe-vscode`](https://github.com/grymmjack/qb64pe-vscode
 
 **Read this in other languages:** [Русский](README.ru.md)
 
+> **⚠️ Warning:** This entire project was written by AI. The author has not
+> reviewed it and is unlikely to ever review it. Use it at your own risk.
+
 ## Included
 
 - `.bas`, `.bi`, `.bm` file association.

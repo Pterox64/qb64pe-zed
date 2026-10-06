@@ -3,7 +3,7 @@ name = "QB64-PE"
 version = "0.3.0"
 schema_version = 1
 authors = ["Local"]
-description = "QB64-PE (Phoenix Edition) language support for Zed: syntax highlighting, auto-indentation, snippets, build tasks, an external formatter and a language server."
+description = "QB64-PE (Phoenix Edition) language support for Zed: syntax highlighting, auto-indentation, snippets, build tasks, an external formatter and a language server. Warning: this entire project was written by AI, has not been reviewed by its author, and comes with no support or warranty."
 repository = "https://github.com/qb64pe/qb64pe"
 
 snippets = ["./snippets/qb64-pe.json"]
