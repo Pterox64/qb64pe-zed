@@ -1,0 +1,37 @@
+name: Release server bundle
+
+# Publishes the QB64-PE language server and debug adapter sources as a release
+# asset. The Zed extension downloads this tarball on first use, so an install
+# from GitHub/registry works without a local checkout or environment variables.
+#
+# Push a tag such as `v0.3.0` to (re)build it. The asset name and layout must
+# stay in sync with `SERVER_ASSET` / `SERVER_SCRIPT_PATH` in `src/lib.rs`.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to attach the asset to (e.g. v0.3.0)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package the server sources
+        run: tar -czf qb64pe-server.tar.gz server
+
+      - name: Publish the release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: qb64pe-server.tar.gz
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          generate_release_notes: true

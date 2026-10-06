@@ -217,9 +217,12 @@ environment variables. Without any of them, hover still describes built-ins.
 
 The Rust launcher (`src/lib.rs`) resolves the server in this order: a
 `qb64pe-lsp` binary on `$PATH`; otherwise Node running the script named by the
-`QB64PE_LSP_SERVER` environment variable; and, when that variable is unset, the
-`server/src/server.ts` script of an opened checkout of this repository. The Node
-binary itself is taken from `QB64PE_NODE`, then Zed's bundled runtime
+`QB64PE_LSP_SERVER` environment variable; otherwise the `server/src/server.ts`
+script of an opened checkout of this repository; and, when none of those exist,
+the server from this repository's latest GitHub release, which the extension
+downloads and unpacks on demand. That last step is what makes an install from
+GitHub/registry work with no local checkout and no environment variables. The
+Node binary itself is taken from `QB64PE_NODE`, then Zed's managed runtime
 (`node_binary_path`), then `node` on `$PATH` — **Node 24+ (or ≥ 22.18) is
 required** for TypeScript type-stripping.
 
@@ -242,10 +245,11 @@ node src/dap/dapServer.ts --stdio   # speak DAP on stdin/stdout
 
 The Rust launcher resolves the adapter in the same order as the language server:
 a `qb64pe-dap` binary on `$PATH`; otherwise Node running the script named by the
-`QB64PE_DAP_SERVER` environment variable; and, when that variable is unset, this
-repository's own `server/src/dap/dapServer.ts`. The compiler path is taken from
-the launch config's `compilerPath`, falling back to the `QB64PE_COMPILER`
-environment variable. A launch configuration looks like:
+`QB64PE_DAP_SERVER` environment variable; otherwise this repository's own
+`server/src/dap/dapServer.ts` from an opened checkout; and, when none of those
+exist, the adapter from the same latest GitHub release the language server uses.
+The compiler path is taken from the launch config's `compilerPath`, falling back
+to the `QB64PE_COMPILER` environment variable. A launch configuration looks like:
 
 ```jsonc
 {
