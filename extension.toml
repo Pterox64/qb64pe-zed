@@ -1,6 +1,6 @@
 id = "qb64"
 name = "QB64-PE"
-version = "0.3.1"
+version = "0.3.2"
 schema_version = 1
 authors = ["Yegor Platohin <yegor@pterox.me>"]
 description = "QB64-PE (Phoenix Edition) language support for Zed: syntax highlighting, auto-indentation, snippets, build tasks, an external formatter and a language server. Warning: this entire project was written by AI, has not been reviewed by its author, and comes with no support or warranty."

@@ -88,7 +88,7 @@ git add tree-sitter/qb64 && git commit -m "Update grammar" && git push
 
 `authors` и `repository` в `extension.toml` уже заполнены. Перед публикацией
 поднимите `version` здесь и в `Cargo.toml` — она должна совпадать с тегом
-релиза (`0.3.1` ↔ `v0.3.1`).
+релиза (`X.Y.Z` ↔ `vX.Y.Z`).
 
 ### 2.4. Проверка окружения сборки
 
@@ -162,8 +162,8 @@ export QB64PE_COMPILER=/путь/к/QB64pe/qb64pe
 прикладывает его автоматически:
 
 ```sh
-git tag v0.3.1
-git push origin v0.3.1
+git tag v0.3.2
+git push origin v0.3.2
 ```
 
 Либо запустите workflow вручную (Actions → Release server bundle → Run
