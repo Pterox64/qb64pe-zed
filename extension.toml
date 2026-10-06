@@ -1,10 +1,10 @@
 id = "qb64"
 name = "QB64-PE"
-version = "0.3.0"
+version = "0.3.1"
 schema_version = 1
-authors = ["Local"]
+authors = ["Yegor Platohin <yegor@pterox.me>"]
 description = "QB64-PE (Phoenix Edition) language support for Zed: syntax highlighting, auto-indentation, snippets, build tasks, an external formatter and a language server. Warning: this entire project was written by AI, has not been reviewed by its author, and comes with no support or warranty."
-repository = "https://github.com/qb64pe/qb64pe"
+repository = "https://github.com/Pterox64/qb64pe-zed"
 
 snippets = ["./snippets/qb64-pe.json"]
 
